@@ -23,6 +23,7 @@ app = FastAPI(
 
 
 classifier = joblib.load("C:/Users/chira/MLAPI/classifier.pkl")
+emotion = joblib.load("C:/Users/chira/MLAPI/emotion_pred.pkl")
 
 def text_cleaning(text, remove_stop_words=True, lemmatize_words=True):
     text = re.sub(r"\'s","", text)
@@ -87,13 +88,17 @@ def predict_sentiment(review: str):
 
     prediction = classifier.predict([cleaned_review])
     output = int(prediction[0])
+    pred = emotion.predict([cleaned_review])
+    out = int(pred[0])
+
     
     
     # output dictionary
     sentiments = {0: "Negative", 1: "Positive"}
+    emo = {0: "anger",1:"happy", 2:"sadness", 3: "surprise" }
     
     # show results
-    result = {"prediction": sentiments[output]}
+    result = {"prediction": sentiments[output],"emotion":emo[out]}
     return result
 
 if __name__ == '__main__':
