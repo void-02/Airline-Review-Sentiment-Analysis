@@ -6,5 +6,3 @@
 **A Fast-API to predict sentiments and emotions of passengers behind their reviews about flights and airlines.**
 
 The API predicts sentiments behind user tweets whether they are positive or negative along with emotions associated with them. It also gives insights about particular airline's and its history of consumer satisfaction as per user input.
-
-
