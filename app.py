@@ -1,5 +1,6 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
+from typing import Optional
 import numpy as np 
 import pandas as pd 
 import pickle
@@ -14,12 +15,38 @@ from nltk.corpus import stopwords
 from os.path import dirname, join, realpath
 import joblib 
 import regex as re
-
+from pydantic import BaseModel
 
 from data import txt
+
+tags_metadata = [
+
+    {
+        "name":"Introduction",
+    },
+
+    {
+        "name": "Passenger's Sentiments and Emotions",
+        "description": "Identifies sentiment and emotion behind input review.",
+    },
+    
+    {
+        "name": "Airline Reliability",
+        "description": "Info about positive and negative sentiment share of 6 highly preferred airlines namely- American Air, Southwest Air, JetBlue, Virgin America, US Airways and United Air. (Enter any of these names for data)",
+
+    },
+]
+
+
+
+
 app = FastAPI(
-    title="Airline review analysis API",
+    title="Airline review analysis API", openapi_tags=tags_metadata
 )
+
+
+
+
 
 
 classifier = joblib.load("C:/Users/chira/MLAPI/classifier.pkl")
@@ -76,12 +103,12 @@ def text_cleaning(text, remove_stop_words=True, lemmatize_words=True):
     
 
     
-@app.get('/')
+@app.get('/',tags=["Introduction"])
 def Introduction():
-    return {"Detail":"This portal is designed to answer sentiments and emotions behind passengers sharing their flight experience. It also shows consumer satisfaction associated with different airlines."}
+    return {"Detail":"This portal is designed to answer sentiments and emotions behind passengers sharing their flight experience. It also shows consumer satisfaction associated with different airlines in terms of positivity and negativity svcore calculated from past tweets."}
 
 
-@app.post("/predict-review")
+@app.post("/predict-review/",tags=["Passenger's Sentiments and Emotions"])
 def predict_sentiment(review: str):
 
     cleaned_review = text_cleaning(review)
@@ -90,8 +117,6 @@ def predict_sentiment(review: str):
     output = int(prediction[0])
     pred = emotion.predict([cleaned_review])
     out = int(pred[0])
-
-    
     
     # output dictionary
     sentiments = {0: "Negative", 1: "Positive"}
@@ -100,6 +125,24 @@ def predict_sentiment(review: str):
     # show results
     result = {"prediction": sentiments[output],"emotion":emo[out]}
     return result
+
+@app.post("/reliability/",tags=["Airline Reliability"])
+
+
+def reliability(text:str):
+    
+    if text == "American Air":
+        return {"Positivity Rate": "Share of Positive Sentiments: 14%", "Negativity Rate" : "Share of Negative Sentiments : 22%"}
+    if text == "Southwest Air":
+        return {"Positivity Rate": "Share of Positive Sentiments: 23%", "Negativity Rate" : "Share of Negative Sentiments : 12%"}
+    if text == "JetBlue":
+        return {"Positivity Rate": "Share of Positive Sentiments: 22%", "Negativity Rate" : "Share of Negative Sentiments : 10%"}
+    if text == "Virgin America":
+        return {"Positivity Rate": "Share of Positive Sentiments: 6%", "Negativity Rate" : "Share of Negative Sentiments : 2%"}
+    if text == "US Airways":
+        return {"Positivity Rate": "Share of Positive Sentiments: 11%", "Negativity Rate" : "Share of Negative Sentiments : 24%"}
+    if text == "United Air":
+        return {"Positivity Rate": "Share of Positive Sentiments: 20%", "Negativity Rate" : "Share of Negative Sentiments : 28%"}
 
 if __name__ == '__main__':
     uvicorn.run(app,host='127.0.0.1',port=8000)
